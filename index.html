@@ -375,6 +375,23 @@
   let watchId = null;
   let state = 'idle'; // idle | running | paused | stopped
   let mode = 'run';
+  let wakeLock = null;
+
+  async function acquireWakeLock() {
+    if (!('wakeLock' in navigator)) return;
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } catch (e) {}
+  }
+
+  function releaseWakeLock() {
+    if (wakeLock) { wakeLock.release(); wakeLock = null; }
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && state === 'running') acquireWakeLock();
+  });
 
   let totalDist = 0;
   let lastPos = null;
@@ -503,6 +520,7 @@
     document.querySelector('.stats-row').style.display = 'grid';
     document.getElementById('statusDot').className = 'status-dot live';
 
+    acquireWakeLock();
     setNotice('Acquiring GPS signal…');
 
     timerInterval = setInterval(updateDisplay, 1000);
@@ -520,6 +538,7 @@
       pauseStart = Date.now();
       if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
       clearInterval(timerInterval);
+      releaseWakeLock();
       document.getElementById('btnPause').textContent = 'Resume';
       document.getElementById('btnPause').style.color = 'var(--accent)';
       document.getElementById('btnPause').style.borderColor = 'var(--accent)';
@@ -531,6 +550,7 @@
       state = 'running';
       totalPaused += Date.now() - pauseStart;
       pauseStart = null;
+      acquireWakeLock();
       document.getElementById('btnPause').textContent = 'Pause';
       document.getElementById('btnPause').style.color = 'var(--warn)';
       document.getElementById('btnPause').style.borderColor = 'var(--warn)';
@@ -545,6 +565,7 @@
 
   function stopTracking() {
     state = 'stopped';
+    releaseWakeLock();
     if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
     clearInterval(timerInterval);
 
