@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Tracker</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --bg: #0d0d0d;
+    --surface: #1a1a1a;
+    --border: #2a2a2a;
+    --accent: #c8f135;
+    --accent-dim: #9ab82a;
+    --text: #f0f0f0;
+    --muted: #666;
+    --danger: #ff4d4d;
+    --warn: #ffaa00;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  header {
+    width: 100%;
+    padding: 56px 24px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .mode-pill {
+    display: flex;
+    background: var(--surface);
+    border-radius: 20px;
+    padding: 4px;
+    gap: 4px;
+    border: 1px solid var(--border);
+  }
+
+  .mode-btn {
+    padding: 6px 16px;
+    border-radius: 16px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.02em;
+  }
+
+  .mode-btn.active {
+    background: var(--accent);
+    color: #0d0d0d;
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    margin-left: auto;
+    transition: background 0.3s;
+    flex-shrink: 0;
+  }
+  .status-dot.live { background: var(--accent); animation: pulse 1.4s infinite; }
+  .status-dot.paused { background: var(--warn); }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .main {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 24px 0;
+    gap: 20px;
+  }
+
+  .speed-ring {
+    width: 220px; height: 220px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+
+  .speed-ring svg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .ring-track {
+    fill: none;
+    stroke: var(--border);
+    stroke-width: 6;
+  }
+
+  .ring-fill {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-dasharray: 589;
+    stroke-dashoffset: 589;
+    transition: stroke-dashoffset 0.6s ease;
+  }
+
+  .speed-val {
+    font-size: 56px;
+    font-weight: 700;
+    letter-spacing: -3px;
+    line-height: 1;
+    color: var(--text);
+    z-index: 1;
+  }
+
+  .speed-unit {
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    z-index: 1;
+    margin-top: 4px;
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .stat-val {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -1px;
+    line-height: 1.1;
+  }
+
+  .stat-sub {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .stat-card.highlight {
+    border-color: var(--accent);
+  }
+
+  .stat-card.highlight .stat-val {
+    color: var(--accent);
+  }
+
+  .notice {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+    width: 100%;
+    line-height: 1.5;
+  }
+
+  .notice.error {
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 20px;
+    padding: 24px;
+    width: 100%;
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .summary-card.visible { display: flex; }
+
+  .summary-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+
+  .summary-dist {
+    font-size: 52px;
+    font-weight: 700;
+    letter-spacing: -3px;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+    gap: 16px;
+  }
+
+  .summary-item { flex: 1; }
+  .summary-item-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .summary-item-val { font-size: 18px; font-weight: 600; margin-top: 2px; }
+
+  .controls {
+    width: 100%;
+    padding: 24px;
+    display: flex;
+    gap: 12px;
+  }
+
+  .btn {
+    flex: 1;
+    height: 60px;
+    border-radius: 16px;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn:active { transform: scale(0.96); }
+
+  .btn-start {
+    background: var(--accent);
+    color: #0d0d0d;
+  }
+
+  .btn-pause {
+    background: var(--surface);
+    color: var(--warn);
+    border: 1px solid var(--warn);
+    display: none;
+  }
+
+  .btn-stop {
+    background: var(--surface);
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    display: none;
+    flex: 0 0 60px;
+    width: 60px;
+  }
+
+  .btn-reset {
+    background: var(--surface);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    display: none;
+  }
+
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="mode-pill">
+    <button class="mode-btn active" onclick="setMode('run')">Run</button>
+    <button class="mode-btn" onclick="setMode('bike')">Bike</button>
+  </div>
+  <div class="status-dot" id="statusDot"></div>
+</header>
+
+<div class="main">
+
+  <div class="speed-ring">
+    <svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+      <circle class="ring-track" cx="110" cy="110" r="94"/>
+      <circle class="ring-fill" id="ringFill" cx="110" cy="110" r="94"/>
+    </svg>
+    <div class="speed-val" id="speedVal">0.0</div>
+    <div class="speed-unit" id="speedUnit">mph</div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card" id="distCard">
+      <div class="stat-label">Distance</div>
+      <div class="stat-val" id="distVal">0.00</div>
+      <div class="stat-sub" id="distUnit">miles</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Time</div>
+      <div class="stat-val" id="timeVal">0:00</div>
+      <div class="stat-sub">elapsed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg Speed</div>
+      <div class="stat-val" id="avgVal">0.0</div>
+      <div class="stat-sub" id="avgUnit">mph</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Top Speed</div>
+      <div class="stat-val" id="topVal">0.0</div>
+      <div class="stat-sub" id="topUnit">mph</div>
+    </div>
+  </div>
+
+  <div class="notice" id="notice">Press Start to begin tracking</div>
+
+  <div class="summary-card" id="summaryCard">
+    <div class="summary-title">Workout complete</div>
+    <div class="summary-dist" id="sumDist">0.00 mi</div>
+    <div class="summary-row">
+      <div class="summary-item">
+        <div class="summary-item-label">Time</div>
+        <div class="summary-item-val" id="sumTime">—</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-item-label">Avg speed</div>
+        <div class="summary-item-val" id="sumAvg">—</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-item-label">Top speed</div>
+        <div class="summary-item-val" id="sumTop">—</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="controls">
+  <button class="btn btn-start" id="btnStart" onclick="startTracking()">Start</button>
+  <button class="btn btn-pause" id="btnPause" onclick="togglePause()">Pause</button>
+  <button class="btn btn-stop"  id="btnStop"  onclick="stopTracking()">■</button>
+  <button class="btn btn-reset" id="btnReset" onclick="resetTracking()">New</button>
+</div>
+
+<script>
+  let watchId = null;
+  let state = 'idle'; // idle | running | paused | stopped
+  let mode = 'run';
+
+  let totalDist = 0;
+  let lastPos = null;
+  let startTime = null;
+  let elapsed = 0;
+  let timerInterval = null;
+  let pauseStart = null;
+  let totalPaused = 0;
+
+  let currentSpeed = 0;
+  let topSpeed = 0;
+  let speedReadings = [];
+
+  const MAX_SPEED = { run: 20, bike: 50 }; // mph — ring scale
+
+  function setMode(m) {
+    if (state !== 'idle') return;
+    mode = m;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase() === m));
+    updateUnits();
+  }
+
+  function updateUnits() {
+    const u = 'mph';
+    ['speedUnit','avgUnit','topUnit'].forEach(id => document.getElementById(id).textContent = u);
+    document.getElementById('distUnit').textContent = 'miles';
+  }
+
+  function toMph(mps) { return mps * 2.23694; }
+  function toMiles(m) { return m * 0.000621371; }
+
+  function haversine(a, b) {
+    const R = 6371000;
+    const φ1 = a.lat * Math.PI/180, φ2 = b.lat * Math.PI/180;
+    const Δφ = (b.lat - a.lat) * Math.PI/180;
+    const Δλ = (b.lon - a.lon) * Math.PI/180;
+    const s = Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1-s));
+  }
+
+  function fmtTime(ms) {
+    const s = Math.floor(ms/1000);
+    const m = Math.floor(s/60);
+    const h = Math.floor(m/60);
+    if (h > 0) return `${h}:${String(m%60).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+    return `${m}:${String(s%60).padStart(2,'0')}`;
+  }
+
+  function setNotice(msg, type='') {
+    const el = document.getElementById('notice');
+    el.textContent = msg;
+    el.className = 'notice' + (type ? ' ' + type : '');
+    el.style.display = msg ? '' : 'none';
+  }
+
+  function updateRing(speedMph) {
+    const max = MAX_SPEED[mode];
+    const pct = Math.min(speedMph / max, 1);
+    const circ = 589;
+    document.getElementById('ringFill').style.strokeDashoffset = circ * (1 - pct);
+  }
+
+  function updateDisplay() {
+    document.getElementById('speedVal').textContent = currentSpeed.toFixed(1);
+    document.getElementById('distVal').textContent = toMiles(totalDist).toFixed(2);
+    document.getElementById('topVal').textContent = topSpeed.toFixed(1);
+    updateRing(currentSpeed);
+
+    const now = Date.now();
+    const activeMs = (startTime ? (now - startTime - totalPaused) : 0);
+    document.getElementById('timeVal').textContent = fmtTime(Math.max(0, activeMs));
+
+    const hrs = activeMs / 3600000;
+    const avg = hrs > 0 ? toMiles(totalDist) / hrs : 0;
+    document.getElementById('avgVal').textContent = avg.toFixed(1);
+  }
+
+  function onPosition(pos) {
+    if (state !== 'running') return;
+
+    const curr = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+    const rawSpeedMps = pos.coords.speed;
+
+    if (rawSpeedMps !== null && rawSpeedMps >= 0) {
+      const mph = toMph(rawSpeedMps);
+      speedReadings.push(mph);
+      if (speedReadings.length > 5) speedReadings.shift();
+      currentSpeed = speedReadings.reduce((a,b) => a+b, 0) / speedReadings.length;
+      if (currentSpeed > topSpeed) topSpeed = currentSpeed;
+    }
+
+    if (lastPos) {
+      const d = haversine(lastPos, curr);
+      if (d < 200) totalDist += d;
+    }
+    lastPos = curr;
+
+    setNotice('', '');
+    updateDisplay();
+  }
+
+  function onError(err) {
+    const msgs = {
+      1: 'Location access denied. Please enable in Settings > Privacy > Location.',
+      2: 'Location unavailable. Try stepping outside.',
+      3: 'GPS timed out. Retrying…'
+    };
+    setNotice(msgs[err.code] || 'GPS error.', 'error');
+  }
+
+  function startTracking() {
+    if (!navigator.geolocation) {
+      setNotice('Geolocation not supported in this browser.', 'error');
+      return;
+    }
+
+    state = 'running';
+    startTime = Date.now();
+    totalPaused = 0;
+
+    document.getElementById('btnStart').style.display = 'none';
+    document.getElementById('btnPause').style.display = '';
+    document.getElementById('btnStop').style.display = '';
+    document.getElementById('btnReset').style.display = 'none';
+    document.getElementById('summaryCard').classList.remove('visible');
+    document.querySelector('.stats-row').style.display = 'grid';
+    document.getElementById('statusDot').className = 'status-dot live';
+
+    setNotice('Acquiring GPS signal…');
+
+    timerInterval = setInterval(updateDisplay, 1000);
+
+    watchId = navigator.geolocation.watchPosition(onPosition, onError, {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 10000
+    });
+  }
+
+  function togglePause() {
+    if (state === 'running') {
+      state = 'paused';
+      pauseStart = Date.now();
+      if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+      clearInterval(timerInterval);
+      document.getElementById('btnPause').textContent = 'Resume';
+      document.getElementById('btnPause').style.color = 'var(--accent)';
+      document.getElementById('btnPause').style.borderColor = 'var(--accent)';
+      document.getElementById('statusDot').className = 'status-dot paused';
+      currentSpeed = 0;
+      updateDisplay();
+      setNotice('Paused — GPS off to save battery');
+    } else if (state === 'paused') {
+      state = 'running';
+      totalPaused += Date.now() - pauseStart;
+      pauseStart = null;
+      document.getElementById('btnPause').textContent = 'Pause';
+      document.getElementById('btnPause').style.color = 'var(--warn)';
+      document.getElementById('btnPause').style.borderColor = 'var(--warn)';
+      document.getElementById('statusDot').className = 'status-dot live';
+      setNotice('Resuming…');
+      timerInterval = setInterval(updateDisplay, 1000);
+      watchId = navigator.geolocation.watchPosition(onPosition, onError, {
+        enableHighAccuracy: true, maximumAge: 0, timeout: 10000
+      });
+    }
+  }
+
+  function stopTracking() {
+    state = 'stopped';
+    if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+    clearInterval(timerInterval);
+
+    const activeMs = startTime ? (Date.now() - startTime - totalPaused) : 0;
+    const miles = toMiles(totalDist);
+    const hrs = activeMs / 3600000;
+    const avg = hrs > 0 ? miles / hrs : 0;
+
+    document.getElementById('sumDist').textContent = miles.toFixed(2) + ' mi';
+    document.getElementById('sumTime').textContent = fmtTime(activeMs);
+    document.getElementById('sumAvg').textContent = avg.toFixed(1) + ' mph';
+    document.getElementById('sumTop').textContent = topSpeed.toFixed(1) + ' mph';
+    document.getElementById('summaryCard').classList.add('visible');
+
+    document.getElementById('btnPause').style.display = 'none';
+    document.getElementById('btnStop').style.display = 'none';
+    document.getElementById('btnReset').style.display = '';
+    document.querySelector('.stats-row').style.display = 'none';
+    document.getElementById('statusDot').className = 'status-dot';
+    setNotice('');
+    updateRing(0);
+    document.getElementById('speedVal').textContent = '—';
+  }
+
+  function resetTracking() {
+    state = 'idle';
+    totalDist = 0; lastPos = null; startTime = null;
+    elapsed = 0; pauseStart = null; totalPaused = 0;
+    currentSpeed = 0; topSpeed = 0; speedReadings = [];
+
+    document.getElementById('speedVal').textContent = '0.0';
+    document.getElementById('distVal').textContent = '0.00';
+    document.getElementById('timeVal').textContent = '0:00';
+    document.getElementById('avgVal').textContent = '0.0';
+    document.getElementById('topVal').textContent = '0.0';
+    updateRing(0);
+
+    document.getElementById('btnStart').style.display = '';
+    document.getElementById('btnPause').style.display = 'none';
+    document.getElementById('btnStop').style.display = 'none';
+    document.getElementById('btnReset').style.display = 'none';
+    document.getElementById('summaryCard').classList.remove('visible');
+    document.querySelector('.stats-row').style.display = 'grid';
+    document.getElementById('statusDot').className = 'status-dot';
+    setNotice('Press Start to begin tracking');
+  }
+
+  updateUnits();
+</script>
+</body>
+</html>
