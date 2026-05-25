@@ -16,7 +16,7 @@
     --accent: #c8f135;
     --accent-dim: #9ab82a;
     --text: #f0f0f0;
-    --muted: #666;
+    --muted: #999;
     --danger: #ff4d4d;
     --warn: #ffaa00;
   }
@@ -56,9 +56,7 @@
     border: none;
     background: transparent;
     color: var(--muted);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
+    font-size: 15px;
     transition: all 0.2s;
     letter-spacing: 0.02em;
   }
@@ -135,7 +133,7 @@
   }
 
   .speed-unit {
-    font-size: 13px;
+    font-size: 16px;
     color: var(--muted);
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -154,29 +152,30 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 16px;
-    padding: 16px;
+    padding: 11px 14px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 1px;
   }
 
   .stat-label {
-    font-size: 11px;
+    font-size: 13px;
     color: var(--muted);
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.06em;
   }
 
   .stat-val {
-    font-size: 28px;
+    font-size: 30px;
     font-weight: 600;
     letter-spacing: -1px;
-    line-height: 1.1;
+    line-height: 1.05;
   }
 
   .stat-sub {
-    font-size: 12px;
+    font-size: 14px;
     color: var(--muted);
+    line-height: 1.2;
   }
 
   .stat-card.highlight {
@@ -191,10 +190,8 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 12px 16px;
-    font-size: 13px;
-    color: var(--muted);
-    text-align: center;
+    padding: 9px 14px;
+    font-size: 15px;
     width: 100%;
     line-height: 1.5;
   }
@@ -208,17 +205,17 @@
     background: var(--surface);
     border: 1px solid var(--accent);
     border-radius: 20px;
-    padding: 24px;
+    padding: 18px 20px;
     width: 100%;
     display: none;
     flex-direction: column;
-    gap: 16px;
+    gap: 10px;
   }
 
   .summary-card.visible { display: flex; }
 
   .summary-title {
-    font-size: 13px;
+    font-size: 15px;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: var(--muted);
@@ -236,13 +233,13 @@
     display: flex;
     justify-content: space-between;
     border-top: 1px solid var(--border);
-    padding-top: 12px;
+    padding-top: 8px;
     gap: 16px;
   }
 
   .summary-item { flex: 1; }
-  .summary-item-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
-  .summary-item-val { font-size: 18px; font-weight: 600; margin-top: 2px; }
+  .summary-item-label { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .summary-item-val { font-size: 20px; font-weight: 600; margin-top: 2px; }
 
   .controls {
     width: 100%;
@@ -256,9 +253,7 @@
     height: 60px;
     border-radius: 16px;
     border: none;
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
+    font-size: 23px;
     cursor: pointer;
     transition: transform 0.1s, opacity 0.2s;
     -webkit-tap-highlight-color: transparent;
@@ -287,12 +282,86 @@
     width: 60px;
   }
 
-  .btn-reset {
-    background: var(--surface);
-    color: var(--muted);
-    border: 1px solid var(--border);
+  .btn-save {
+    background: var(--accent);
+    color: #0d0d0d;
     display: none;
   }
+
+  .btn-discard {
+    background: var(--surface);
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    display: none;
+  }
+
+  .history-card {
+    width: 100%;
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .history-card.visible { display: flex; }
+
+  .history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2px;
+  }
+
+  .history-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+
+  .history-clear {
+    font-size: 12px;
+    color: var(--danger);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 0;
+    opacity: 0.7;
+  }
+
+  .history-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .history-left { display: flex; flex-direction: column; gap: 2px; }
+
+  .history-date {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .history-mode {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+  }
+
+  .history-right {
+    display: flex;
+    gap: 14px;
+    align-items: flex-end;
+  }
+
+  .history-stat { text-align: right; }
+  .history-stat-val { font-size: 17px; font-weight: 600; line-height: 1; }
+  .history-stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
   .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 </style>
@@ -301,8 +370,8 @@
 
 <header>
   <div class="mode-pill">
-    <button class="mode-btn active" onclick="setMode('run')">Run</button>
-    <button class="mode-btn" onclick="setMode('bike')">Bike</button>
+    <button class="mode-btn active" data-mode="run" onclick="setMode('run')">Run</button>
+    <button class="mode-btn" data-mode="bike" onclick="setMode('bike')">Bike</button>
   </div>
   <div class="status-dot" id="statusDot"></div>
 </header>
@@ -344,7 +413,7 @@
   <div class="notice" id="notice">Press Start to begin tracking</div>
 
   <div class="summary-card" id="summaryCard">
-    <div class="summary-title">Workout complete</div>
+    <div class="summary-title" id="sumTitle">Workout complete</div>
     <div class="summary-dist" id="sumDist">0.00 mi</div>
     <div class="summary-row">
       <div class="summary-item">
@@ -362,13 +431,16 @@
     </div>
   </div>
 
+  <div class="history-card" id="historyCard"></div>
+
 </div>
 
 <div class="controls">
   <button class="btn btn-start" id="btnStart" onclick="startTracking()">Start</button>
   <button class="btn btn-pause" id="btnPause" onclick="togglePause()">Pause</button>
   <button class="btn btn-stop"  id="btnStop"  onclick="stopTracking()">■</button>
-  <button class="btn btn-reset" id="btnReset" onclick="resetTracking()">New</button>
+  <button class="btn btn-save"  id="btnSave"  onclick="saveWorkout()">Save</button>
+  <button class="btn btn-discard" id="btnDiscard" onclick="resetTracking()">Discard</button>
 </div>
 
 <script>
@@ -410,7 +482,7 @@
   function setMode(m) {
     if (state !== 'idle') return;
     mode = m;
-    document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase() === m));
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
     updateUnits();
   }
 
@@ -563,6 +635,8 @@
     }
   }
 
+  let pendingWorkout = null;
+
   function stopTracking() {
     state = 'stopped';
     releaseWakeLock();
@@ -574,6 +648,17 @@
     const hrs = activeMs / 3600000;
     const avg = hrs > 0 ? miles / hrs : 0;
 
+    pendingWorkout = {
+      id: Date.now(),
+      date: new Date().toISOString(),
+      mode,
+      miles: parseFloat(miles.toFixed(2)),
+      durationMs: activeMs,
+      avgMph: parseFloat(avg.toFixed(1)),
+      topMph: parseFloat(topSpeed.toFixed(1))
+    };
+
+    document.getElementById('sumTitle').textContent = 'Save this workout?';
     document.getElementById('sumDist').textContent = miles.toFixed(2) + ' mi';
     document.getElementById('sumTime').textContent = fmtTime(activeMs);
     document.getElementById('sumAvg').textContent = avg.toFixed(1) + ' mph';
@@ -582,7 +667,8 @@
 
     document.getElementById('btnPause').style.display = 'none';
     document.getElementById('btnStop').style.display = 'none';
-    document.getElementById('btnReset').style.display = 'block';
+    document.getElementById('btnSave').style.display = 'block';
+    document.getElementById('btnDiscard').style.display = 'block';
     document.querySelector('.stats-row').style.display = 'none';
     document.getElementById('statusDot').className = 'status-dot';
     setNotice('');
@@ -590,7 +676,21 @@
     document.getElementById('speedVal').textContent = '—';
   }
 
+  function saveWorkout() {
+    if (!pendingWorkout) return;
+    const history = JSON.parse(localStorage.getItem('tracker_history') || '[]');
+    history.unshift(pendingWorkout);
+    localStorage.setItem('tracker_history', JSON.stringify(history));
+    pendingWorkout = null;
+    document.getElementById('sumTitle').textContent = 'Saved ✓';
+    document.getElementById('btnSave').style.display = 'none';
+    document.getElementById('btnDiscard').style.display = 'none';
+    document.getElementById('btnStart').style.display = 'block';
+    loadHistory();
+  }
+
   function resetTracking() {
+    pendingWorkout = null;
     state = 'idle';
     totalDist = 0; lastPos = null; startTime = null;
     elapsed = 0; pauseStart = null; totalPaused = 0;
@@ -606,14 +706,63 @@
     document.getElementById('btnStart').style.display = 'block';
     document.getElementById('btnPause').style.display = 'none';
     document.getElementById('btnStop').style.display = 'none';
-    document.getElementById('btnReset').style.display = 'none';
+    document.getElementById('btnSave').style.display = 'none';
+    document.getElementById('btnDiscard').style.display = 'none';
     document.getElementById('summaryCard').classList.remove('visible');
     document.querySelector('.stats-row').style.display = 'grid';
     document.getElementById('statusDot').className = 'status-dot';
     setNotice('Press Start to begin tracking');
+    loadHistory();
+  }
+
+  function loadHistory() {
+    const history = JSON.parse(localStorage.getItem('tracker_history') || '[]');
+    const card = document.getElementById('historyCard');
+    if (!history.length) { card.classList.remove('visible'); return; }
+    card.classList.add('visible');
+
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    card.innerHTML = `
+      <div class="history-header">
+        <span class="history-title">Past workouts</span>
+        <button class="history-clear" onclick="clearHistory()">Clear all</button>
+      </div>
+      ${history.map(w => {
+        const d = new Date(w.date);
+        const dateStr = `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} · ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+        return `
+        <div class="history-item">
+          <div class="history-left">
+            <div class="history-date">${dateStr}</div>
+            <div class="history-mode">${w.mode}</div>
+          </div>
+          <div class="history-right">
+            <div class="history-stat">
+              <div class="history-stat-val">${w.miles.toFixed(2)}</div>
+              <div class="history-stat-lbl">miles</div>
+            </div>
+            <div class="history-stat">
+              <div class="history-stat-val">${fmtTime(w.durationMs)}</div>
+              <div class="history-stat-lbl">time</div>
+            </div>
+            <div class="history-stat">
+              <div class="history-stat-val">${w.avgMph}</div>
+              <div class="history-stat-lbl">avg mph</div>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}`;
+  }
+
+  function clearHistory() {
+    localStorage.removeItem('tracker_history');
+    loadHistory();
   }
 
   updateUnits();
+  loadHistory();
 </script>
 </body>
 </html>
