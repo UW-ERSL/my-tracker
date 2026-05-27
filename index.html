@@ -413,20 +413,24 @@
   .cal-day.has-workout {
     background: var(--surface);
     border: 1px solid var(--border);
+    cursor: pointer;
   }
 
-  .cal-day.has-run { border-color: var(--accent); }
+  .cal-day.has-run  { border-color: var(--accent); }
   .cal-day.has-bike { border-color: #38bdf8; }
   .cal-day.has-both { border-color: var(--warn); }
   .cal-day.selected { outline: 2px solid white; outline-offset: 1px; }
 
   .cal-day-num { font-size: 15px; font-weight: 500; line-height: 1; }
+
   .today-num {
     background: var(--border);
     border-radius: 50%;
     width: 24px; height: 24px;
     display: flex; align-items: center; justify-content: center;
   }
+
+  .cal-day-icon { font-size: 14px; line-height: 1; margin-top: 1px; }
 
   .cal-legend {
     display: flex;
@@ -899,6 +903,8 @@
   }
 
   let selectedDayKey = null;
+  let calYear  = new Date().getFullYear();
+  let calMonth = new Date().getMonth();
 
   function loadHistory() {
     const history = JSON.parse(localStorage.getItem('tracker_history') || '[]');
@@ -977,7 +983,6 @@
     panel.innerHTML = `
       <div class="cal-header">
         <span class="cal-title">History</span>
-        ${hasAny ? `<button style="font-size:13px;color:var(--danger);background:none;border:none;cursor:pointer;" onclick="clearHistory()">Clear all</button>` : ''}
       </div>
 
       <div class="cal-summary">
