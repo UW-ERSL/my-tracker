@@ -726,11 +726,25 @@
   function onPosition(pos) {
     if (state !== 'running') return;
 
-    const curr = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+    const curr = { lat: pos.coords.latitude, lon: pos.coords.longitude, time: pos.timestamp };
     const rawSpeedMps = pos.coords.speed;
 
+    let mph = null;
+
+    // Use GPS-provided speed if available
     if (rawSpeedMps !== null && rawSpeedMps >= 0) {
-      const mph = toMph(rawSpeedMps);
+      mph = toMph(rawSpeedMps);
+    }
+    // Fallback: calculate from distance/time between pings
+    else if (lastPos && lastPos.time) {
+      const dt = (curr.time - lastPos.time) / 1000; // seconds
+      if (dt > 0) {
+        const d = haversine(lastPos, curr);
+        mph = toMph(d / dt);
+      }
+    }
+
+    if (mph !== null) {
       speedReadings.push(mph);
       if (speedReadings.length > 5) speedReadings.shift();
       currentSpeed = speedReadings.reduce((a,b) => a+b, 0) / speedReadings.length;
