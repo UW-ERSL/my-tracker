@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Tracker</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -101,7 +102,7 @@
   }
 
   .speed-ring {
-    width: 220px; height: 220px;
+    width: 160px; height: 160px;
     position: relative;
     display: flex;
     align-items: center;
@@ -127,13 +128,13 @@
     stroke: var(--accent);
     stroke-width: 6;
     stroke-linecap: round;
-    stroke-dasharray: 589;
-    stroke-dashoffset: 589;
+    stroke-dasharray: 427;
+    stroke-dashoffset: 427;
     transition: stroke-dashoffset 0.6s ease;
   }
 
   .speed-val {
-    font-size: 56px;
+    font-size: 42px;
     font-weight: 700;
     letter-spacing: -3px;
     line-height: 1;
@@ -409,13 +410,6 @@
 
   .cal-day.empty { }
 
-  .cal-day.today .cal-day-num {
-    background: var(--border);
-    border-radius: 50%;
-    width: 26px; height: 26px;
-    display: flex; align-items: center; justify-content: center;
-  }
-
   .cal-day.has-workout {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -424,15 +418,14 @@
   .cal-day.has-run { border-color: var(--accent); }
   .cal-day.has-bike { border-color: #38bdf8; }
   .cal-day.has-both { border-color: var(--warn); }
+  .cal-day.selected { outline: 2px solid white; outline-offset: 1px; }
 
   .cal-day-num { font-size: 15px; font-weight: 500; line-height: 1; }
-
-  .cal-day-icon { font-size: 13px; line-height: 1; }
-
-  .cal-day-miles {
-    font-size: 10px;
-    color: var(--muted);
-    line-height: 1;
+  .today-num {
+    background: var(--border);
+    border-radius: 50%;
+    width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
   }
 
   .cal-legend {
@@ -455,14 +448,77 @@
     border-radius: 3px;
   }
 
-  .history-clear {
-    font-size: 13px;
-    color: var(--danger);
-    background: none;
-    border: none;
-    cursor: pointer;
-    opacity: 0.8;
+  /* ── Monthly summary bar ── */
+  .cal-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
   }
+
+  .cal-sum-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .cal-sum-card.run-card  { border-color: var(--accent); }
+  .cal-sum-card.bike-card { border-color: #38bdf8; }
+
+  .cal-sum-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+
+  .cal-sum-miles {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+
+  .cal-sum-card.run-card  .cal-sum-miles { color: var(--accent); }
+  .cal-sum-card.bike-card .cal-sum-miles { color: #38bdf8; }
+
+  .cal-sum-sub {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* ── Day detail panel ── */
+  .cal-detail {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .cal-detail.visible { display: flex; }
+
+  .cal-detail-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .cal-detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+  }
+
+  .cal-detail-type { color: var(--muted); }
+  .cal-detail-val  { font-weight: 600; font-size: 18px; }
 
   .history-empty {
     color: var(--muted);
@@ -487,9 +543,9 @@
   <div class="main">
 
     <div class="speed-ring">
-      <svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
-        <circle class="ring-track" cx="110" cy="110" r="94"/>
-        <circle class="ring-fill" id="ringFill" cx="110" cy="110" r="94"/>
+      <svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+        <circle class="ring-track" cx="80" cy="80" r="68"/>
+        <circle class="ring-fill" id="ringFill" cx="80" cy="80" r="68"/>
       </svg>
       <div class="speed-val" id="speedVal">0.0</div>
       <div class="speed-unit" id="speedUnit">mph</div>
@@ -644,7 +700,7 @@
   function updateRing(speedMph) {
     const max = MAX_SPEED[mode];
     const pct = Math.min(speedMph / max, 1);
-    const circ = 589;
+    const circ = 427;
     document.getElementById('ringFill').style.strokeDashoffset = circ * (1 - pct);
   }
 
@@ -842,14 +898,13 @@
     if (tab === 'history') loadHistory();
   }
 
-  let calYear  = new Date().getFullYear();
-  let calMonth = new Date().getMonth(); // 0-based
+  let selectedDayKey = null;
 
   function loadHistory() {
     const history = JSON.parse(localStorage.getItem('tracker_history') || '[]');
     const panel = document.getElementById('historyPanel');
 
-    // Build a map: "YYYY-MM-DD" -> { run: miles, bike: miles }
+    // Build day map
     const dayMap = {};
     history.forEach(w => {
       const d = new Date(w.date);
@@ -858,46 +913,62 @@
       dayMap[key][w.mode] += w.miles;
     });
 
+    // Monthly totals
+    const monthRunMiles  = history.filter(w => { const d = new Date(w.date); return d.getFullYear() === calYear && d.getMonth() === calMonth && w.mode === 'run'; }).reduce((s,w) => s + w.miles, 0);
+    const monthBikeMiles = history.filter(w => { const d = new Date(w.date); return d.getFullYear() === calYear && d.getMonth() === calMonth && w.mode === 'bike'; }).reduce((s,w) => s + w.miles, 0);
+    const monthRunCount  = new Set(history.filter(w => { const d = new Date(w.date); return d.getFullYear() === calYear && d.getMonth() === calMonth && w.mode === 'run'; }).map(w => { const d = new Date(w.date); return `${d.getDate()}`; })).size;
+    const monthBikeCount = new Set(history.filter(w => { const d = new Date(w.date); return d.getFullYear() === calYear && d.getMonth() === calMonth && w.mode === 'bike'; }).map(w => { const d = new Date(w.date); return `${d.getDate()}`; })).size;
+
     const months = ['January','February','March','April','May','June',
                     'July','August','September','October','November','December'];
     const dows = ['Su','Mo','Tu','We','Th','Fr','Sa'];
     const today = new Date();
-
     const firstDay = new Date(calYear, calMonth, 1).getDay();
     const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
 
-    // DOW headers
     const dowHtml = dows.map(d => `<div class="cal-dow">${d}</div>`).join('');
 
-    // Empty cells before day 1
     let cellsHtml = Array(firstDay).fill('<div class="cal-day empty"></div>').join('');
 
     for (let d = 1; d <= daysInMonth; d++) {
       const key = `${calYear}-${calMonth}-${d}`;
       const w = dayMap[key];
       const isToday = d === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear();
+      const isSelected = key === selectedDayKey;
 
       let cls = 'cal-day';
-      let icon = '', milesHtml = '';
+      let icon = '';
 
       if (w) {
         const hasRun  = w.run  > 0;
         const hasBike = w.bike > 0;
         cls += ' has-workout';
-        if (hasRun && hasBike)     { cls += ' has-both';  icon = '🏃🚴'; }
-        else if (hasRun)           { cls += ' has-run';   icon = '🏃'; }
-        else if (hasBike)          { cls += ' has-bike';  icon = '🚴'; }
-        const totalMiles = (w.run + w.bike).toFixed(1);
-        milesHtml = `<div class="cal-day-miles">${totalMiles}mi</div>`;
+        if (hasRun && hasBike) { cls += ' has-both';  icon = '🏃🚴'; }
+        else if (hasRun)       { cls += ' has-run';   icon = '🏃'; }
+        else if (hasBike)      { cls += ' has-bike';  icon = '🚴'; }
+        if (isSelected) cls += ' selected';
+        cellsHtml += `
+          <div class="${cls}" onclick="selectDay('${key}')">
+            <div class="cal-day-num${isToday ? ' today-num' : ''}">${d}</div>
+            <div class="cal-day-icon">${icon}</div>
+          </div>`;
+      } else {
+        if (isToday) cls += ' today';
+        cellsHtml += `<div class="${cls}"><div class="cal-day-num${isToday ? ' today-num' : ''}">${d}</div></div>`;
       }
+    }
 
-      if (isToday) cls += ' today';
-
-      cellsHtml += `
-        <div class="${cls}">
-          <div class="cal-day-num">${d}</div>
-          ${icon ? `<div class="cal-day-icon">${icon}</div>` : ''}
-          ${milesHtml}
+    // Day detail HTML
+    let detailHtml = '';
+    if (selectedDayKey && dayMap[selectedDayKey]) {
+      const w = dayMap[selectedDayKey];
+      const [y, m, d] = selectedDayKey.split('-');
+      const dateLabel = new Date(+y, +m, +d).toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+      detailHtml = `
+        <div class="cal-detail visible" id="calDetail">
+          <div class="cal-detail-title">${dateLabel}</div>
+          ${w.run  > 0 ? `<div class="cal-detail-row"><span class="cal-detail-type">🏃 Run</span> <span class="cal-detail-val" style="color:var(--accent)">${w.run.toFixed(2)} mi</span></div>` : ''}
+          ${w.bike > 0 ? `<div class="cal-detail-row"><span class="cal-detail-type">🚴 Bike</span><span class="cal-detail-val" style="color:#38bdf8">${w.bike.toFixed(2)} mi</span></div>` : ''}
         </div>`;
     }
 
@@ -906,8 +977,22 @@
     panel.innerHTML = `
       <div class="cal-header">
         <span class="cal-title">History</span>
-        ${hasAny ? `<button class="history-clear" onclick="clearHistory()">Clear all</button>` : ''}
+        ${hasAny ? `<button style="font-size:13px;color:var(--danger);background:none;border:none;cursor:pointer;" onclick="clearHistory()">Clear all</button>` : ''}
       </div>
+
+      <div class="cal-summary">
+        <div class="cal-sum-card run-card">
+          <div class="cal-sum-label">🏃 Run</div>
+          <div class="cal-sum-miles">${monthRunMiles.toFixed(1)}</div>
+          <div class="cal-sum-sub">miles · ${monthRunCount} session${monthRunCount !== 1 ? 's' : ''}</div>
+        </div>
+        <div class="cal-sum-card bike-card">
+          <div class="cal-sum-label">🚴 Bike</div>
+          <div class="cal-sum-miles">${monthBikeMiles.toFixed(1)}</div>
+          <div class="cal-sum-sub">miles · ${monthBikeCount} session${monthBikeCount !== 1 ? 's' : ''}</div>
+        </div>
+      </div>
+
       <div class="cal-nav">
         <button class="cal-nav-btn" onclick="calShift(-1)">‹</button>
         <div class="cal-month-label">${months[calMonth]} ${calYear}</div>
@@ -917,24 +1002,34 @@
         ${dowHtml}
         ${cellsHtml}
       </div>
+
+      ${detailHtml}
+
       <div class="cal-legend">
         <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--accent)"></div>Run</div>
         <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#38bdf8"></div>Bike</div>
         <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--warn)"></div>Both</div>
       </div>
-      ${!hasAny ? '<div class="history-empty">No workouts saved yet.</div>' : ''}
+      ${!hasAny ? '<div style="color:var(--muted);font-size:16px;text-align:center;margin-top:40px;">No workouts saved yet.</div>' : ''}
     `;
+  }
+
+  function selectDay(key) {
+    selectedDayKey = selectedDayKey === key ? null : key; // tap again to deselect
+    loadHistory();
   }
 
   function calShift(dir) {
     calMonth += dir;
     if (calMonth > 11) { calMonth = 0;  calYear++; }
     if (calMonth < 0)  { calMonth = 11; calYear--; }
+    selectedDayKey = null;
     loadHistory();
   }
 
   function clearHistory() {
     localStorage.removeItem('tracker_history');
+    selectedDayKey = null;
     loadHistory();
   }
 
