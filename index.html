@@ -539,6 +539,7 @@
     <button class="mode-btn active" data-mode="run" onclick="setMode('run')">Run</button>
     <button class="mode-btn" data-mode="bike" onclick="setMode('bike')">Bike</button>
   </div>
+  <span style="font-size:11px;color:var(--muted);letter-spacing:0.06em;">v1.2</span>
   <div class="status-dot" id="statusDot"></div>
 </header>
 
@@ -572,9 +573,9 @@
         <div class="stat-sub" id="avgUnit">mph</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Top Speed</div>
-        <div class="stat-val" id="topVal">0.0</div>
-        <div class="stat-sub" id="topUnit">mph</div>
+        <div class="stat-label">Pace</div>
+        <div class="stat-val" id="topVal">—</div>
+        <div class="stat-sub">min/mile</div>
       </div>
     </div>
 
@@ -659,7 +660,7 @@
   let topSpeed = 0;
   let speedReadings = [];
 
-  const MAX_SPEED = { run: 20, bike: 50 }; // mph — ring scale
+  const MAX_SPEED = { run: 30, bike: 30 }; // mph — ring scale
 
   function setMode(m) {
     if (state !== 'idle') return;
@@ -670,11 +671,17 @@
 
   function updateUnits() {
     const u = 'mph';
-    ['speedUnit','avgUnit','topUnit'].forEach(id => document.getElementById(id).textContent = u);
+    ['speedUnit','avgUnit'].forEach(id => document.getElementById(id).textContent = u);
     document.getElementById('distUnit').textContent = 'miles';
   }
 
-  function toMph(mps) { return mps * 2.23694; }
+  function fmtPace(mph) {
+    if (mph < 0.3) return '—';
+    const minsPerMile = 60 / mph;
+    const mins = Math.floor(minsPerMile);
+    const secs = Math.round((minsPerMile - mins) * 60);
+    return `${mins}:${String(secs).padStart(2, '0')}`;
+  }
   function toMiles(m) { return m * 0.000621371; }
 
   function haversine(a, b) {
@@ -711,7 +718,7 @@
   function updateDisplay() {
     document.getElementById('speedVal').textContent = currentSpeed.toFixed(1);
     document.getElementById('distVal').textContent = toMiles(totalDist).toFixed(2);
-    document.getElementById('topVal').textContent = topSpeed.toFixed(1);
+    document.getElementById('topVal').textContent = fmtPace(currentSpeed);
     updateRing(currentSpeed);
 
     const now = Date.now();
@@ -726,18 +733,23 @@
   function onPosition(pos) {
     if (state !== 'running') return;
 
+    const accuracy = pos.coords.accuracy; // metres
+
+    // Skip poor accuracy readings (GPS hasn't locked well)
+    if (accuracy > 25) {
+      lastPos = null; // don't bridge across a bad reading
+      return;
+    }
+
     const curr = { lat: pos.coords.latitude, lon: pos.coords.longitude, time: pos.timestamp };
     const rawSpeedMps = pos.coords.speed;
 
     let mph = null;
 
-    // Use GPS-provided speed if available
     if (rawSpeedMps !== null && rawSpeedMps >= 0) {
       mph = toMph(rawSpeedMps);
-    }
-    // Fallback: calculate from distance/time between pings
-    else if (lastPos && lastPos.time) {
-      const dt = (curr.time - lastPos.time) / 1000; // seconds
+    } else if (lastPos && lastPos.time) {
+      const dt = (curr.time - lastPos.time) / 1000;
       if (dt > 0) {
         const d = haversine(lastPos, curr);
         mph = toMph(d / dt);
@@ -753,7 +765,10 @@
 
     if (lastPos) {
       const d = haversine(lastPos, curr);
-      if (d < 200) totalDist += d;
+      // Only count movement that exceeds GPS noise threshold
+      // Uses accuracy of current reading as the minimum meaningful step
+      const minStep = Math.max(2, accuracy * 0.5);
+      if (d > minStep && d < 200) totalDist += d;
     }
     lastPos = curr;
 
@@ -894,7 +909,7 @@
     document.getElementById('distVal').textContent = '0.00';
     document.getElementById('timeVal').textContent = '0:00';
     document.getElementById('avgVal').textContent = '0.0';
-    document.getElementById('topVal').textContent = '0.0';
+    document.getElementById('topVal').textContent = '—';
     updateRing(0);
 
     document.getElementById('btnStart').style.display = 'block';
