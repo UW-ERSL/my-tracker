@@ -539,7 +539,7 @@
     <button class="mode-btn active" data-mode="run" onclick="setMode('run')">Run</button>
     <button class="mode-btn" data-mode="bike" onclick="setMode('bike')">Bike</button>
   </div>
-  <span style="font-size:11px;color:var(--muted);letter-spacing:0.06em;">v1.2</span>
+  <span style="font-size:11px;color:var(--muted);letter-spacing:0.06em;">v1.4</span>
   <div class="status-dot" id="statusDot"></div>
 </header>
 
@@ -573,7 +573,7 @@
         <div class="stat-sub" id="avgUnit">mph</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Pace</div>
+        <div class="stat-label">Avg Pace</div>
         <div class="stat-val" id="topVal">—</div>
         <div class="stat-sub">min/mile</div>
       </div>
@@ -718,7 +718,8 @@
   function updateDisplay() {
     document.getElementById('speedVal').textContent = currentSpeed.toFixed(1);
     document.getElementById('distVal').textContent = toMiles(totalDist).toFixed(2);
-    document.getElementById('topVal').textContent = fmtPace(currentSpeed);
+    const avgPace = avg > 0 ? fmtPace(avg) : '—';
+    document.getElementById('topVal').textContent = avgPace;
     updateRing(currentSpeed);
 
     const now = Date.now();
@@ -823,11 +824,13 @@
       if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
       clearInterval(timerInterval);
       releaseWakeLock();
+      lastPos = null;        // prevent bridging across the pause gap
+      speedReadings = [];    // clear speed buffer so avg doesn't spike on resume
+      currentSpeed = 0;
       document.getElementById('btnPause').textContent = 'Resume';
       document.getElementById('btnPause').style.color = 'var(--accent)';
       document.getElementById('btnPause').style.borderColor = 'var(--accent)';
       document.getElementById('statusDot').className = 'status-dot paused';
-      currentSpeed = 0;
       updateDisplay();
       setNotice('Paused — GPS off to save battery');
     } else if (state === 'paused') {
