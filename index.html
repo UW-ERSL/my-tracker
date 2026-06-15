@@ -539,7 +539,7 @@
     <button class="mode-btn active" data-mode="run" onclick="setMode('run')">Run</button>
     <button class="mode-btn" data-mode="bike" onclick="setMode('bike')">Bike</button>
   </div>
-  <span style="font-size:11px;color:var(--muted);letter-spacing:0.06em;">v1.5</span>
+  <span style="font-size:11px;color:var(--muted);letter-spacing:0.06em;">v1.7</span>
   <div class="status-dot" id="statusDot"></div>
 </header>
 
@@ -717,19 +717,17 @@
   }
 
   function updateDisplay() {
-    document.getElementById('speedVal').textContent = currentSpeed.toFixed(1);
-    document.getElementById('distVal').textContent = toMiles(totalDist).toFixed(2);
-    const avgPace = avg > 0 ? fmtPace(avg) : '—';
-    document.getElementById('topVal').textContent = avgPace;
-    updateRing(currentSpeed);
-
     const now = Date.now();
     const activeMs = (startTime ? (now - startTime - totalPaused) : 0);
-    document.getElementById('timeVal').textContent = fmtTime(Math.max(0, activeMs));
-
     const hrs = activeMs / 3600000;
     const avg = hrs > 0 ? toMiles(totalDist) / hrs : 0;
+
+    document.getElementById('speedVal').textContent = currentSpeed.toFixed(1);
+    document.getElementById('distVal').textContent = toMiles(totalDist).toFixed(2);
+    document.getElementById('timeVal').textContent = fmtTime(Math.max(0, activeMs));
     document.getElementById('avgVal').textContent = avg.toFixed(1);
+    document.getElementById('topVal').textContent = avg > 0 ? fmtPace(avg) : '—';
+    updateRing(currentSpeed);
   }
 
   function onPosition(pos) {
@@ -737,9 +735,10 @@
 
     const accuracy = pos.coords.accuracy; // metres
 
-    // Skip poor accuracy readings (GPS hasn't locked well)
-    if (accuracy > 25) {
-      lastPos = null; // don't bridge across a bad reading
+    // Skip only very poor accuracy readings (relaxed from 25m to 40m
+    // to avoid dropping valid pings that briefly spike outdoors)
+    if (accuracy > 40) {
+      lastPos = null;
       return;
     }
 
@@ -767,10 +766,9 @@
 
     if (lastPos) {
       const d = haversine(lastPos, curr);
-      // Only count movement that exceeds GPS noise threshold
-      // Uses accuracy of current reading as the minimum meaningful step
-      const minStep = Math.max(2, accuracy * 0.5);
-      if (d > minStep && d < 200) totalDist += d;
+      // Flat 3m minimum step — avoids GPS jitter when still, but
+      // doesn't under-count at walking pace (~1.3m/s x ping interval)
+      if (d > 3 && d < 200) totalDist += d;
     }
     lastPos = curr;
 
