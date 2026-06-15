@@ -539,7 +539,7 @@
     <button class="mode-btn active" data-mode="run" onclick="setMode('run')">Run</button>
     <button class="mode-btn" data-mode="bike" onclick="setMode('bike')">Bike</button>
   </div>
-  <span style="font-size:11px;color:var(--muted);letter-spacing:0.06em;">v1.4</span>
+  <span style="font-size:11px;color:var(--muted);letter-spacing:0.06em;">v1.5</span>
   <div class="status-dot" id="statusDot"></div>
 </header>
 
@@ -682,6 +682,7 @@
     const secs = Math.round((minsPerMile - mins) * 60);
     return `${mins}:${String(secs).padStart(2, '0')}`;
   }
+  function toMph(mps) { return mps * 2.23694; }
   function toMiles(m) { return m * 0.000621371; }
 
   function haversine(a, b) {
